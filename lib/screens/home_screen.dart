@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -17,8 +18,8 @@ class HomeScreen extends StatelessWidget {
           children: [
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Naviguer vers InitPairingScreen
-                debugPrint('Créer une connexion');
+                // Naviguer vers l'écran de création/partage de connexion
+                context.go('/connexion');
               },
               icon: const Icon(Icons.qr_code),
               label: const Text('Créer une connexion'),
@@ -30,8 +31,8 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                // TODO: Naviguer vers ScanPairingScreen
-                debugPrint('Scanner un QR code');
+                // Naviguer vers l'écran de scan
+                context.go('/scanner');
               },
               icon: const Icon(Icons.qr_code_scanner),
               label: const Text('Scanner un QR code'),
