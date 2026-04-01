@@ -5,8 +5,6 @@ class ApiService {
   static const _base = 'https://alto.samyn.ovh';
   static const _pairing = '$_base/pairing';
 
-  /// POST /pairing
-  /// payload: { relationCode: string, userPublicKey: string }
   static Future<Map<String, dynamic>?> postPairingInit(Map<String, dynamic> payload) async {
     try {
       final resp = await http.post(Uri.parse(_pairing), headers: {'Content-Type': 'application/json'}, body: json.encode(payload));
@@ -20,8 +18,6 @@ class ApiService {
     }
   }
 
-  /// PUT /pairing
-  /// payload: { relationCodeA, relationCodeB, publicKeyB }
   static Future<Map<String, dynamic>?> putPairingMatch(Map<String, dynamic> payload) async {
     try {
       final resp = await http.put(Uri.parse(_pairing), headers: {'Content-Type': 'application/json'}, body: json.encode(payload));
@@ -35,7 +31,6 @@ class ApiService {
     }
   }
 
-  /// GET /pairing/{relationCode}/status
   static Future<Map<String, dynamic>?> getPairingStatus(String relationCode) async {
     try {
       final uri = Uri.parse('$_pairing/$relationCode/status');
@@ -50,8 +45,6 @@ class ApiService {
     }
   }
 
-  /// DELETE /pairing?relationCodeA=...
-  /// Retourne le body (ex: { relationCodeB, publicKeyB }) si succès
   static Future<Map<String, dynamic>?> deletePairing(String relationCodeA) async {
     try {
       final uri = Uri.parse('$_pairing?relationCodeA=${Uri.encodeComponent(relationCodeA)}');

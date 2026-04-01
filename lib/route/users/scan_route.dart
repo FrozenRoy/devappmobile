@@ -1,12 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../common/api_service.dart';
+import '../../common/pairing_service.dart';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:async';
 import 'package:uuid/uuid.dart';
 
 class ScannerRoute extends StatefulWidget {
@@ -31,24 +31,24 @@ class _TestRouteState extends State<ScannerRoute> {
     await _controller.stop();
 
     try {
-      // The QR contains only the relationCodeA (string) or a JSON { relationCode: '...' }
-      String relationCodeA = value;
+      String? url;
+      String? relationCodeA;
       try {
         final decoded = json.decode(value);
         if (decoded is Map && decoded['relationCode'] != null) {
-          relationCodeA = decoded['relationCode'].toString();
+          relationCodeA = decoded['relationCode']?.toString();
         }
-      } catch (_) {
-        // not JSON -> keep raw value
-      }
+      } catch (_) {}
 
       final prefs = await SharedPreferences.getInstance();
 
-      // Save last scanned raw value for backward compatibility
-      await prefs.setString('my_url', value);
+      if (url != null) {
+        await prefs.setString('my_url', url);
+      } else {
+        await prefs.setString('my_url', value);
+      }
 
-      if (relationCodeA.isNotEmpty) {
-        // Bob flow: generate publicKeyB and relationCodeB, then PUT /pairing
+      if (relationCodeA != null && relationCodeA.isNotEmpty) {
         String? localPub = prefs.getString('local_pubkey');
         if (localPub == null || localPub.isEmpty) {
           final rnd = Random.secure();
@@ -66,7 +66,6 @@ class _TestRouteState extends State<ScannerRoute> {
         });
 
         if (putResp != null) {
-          // Server should return publicKeyA and relationCodeA
           final publicKeyA = putResp['publicKeyA']?.toString() ?? putResp['userPublicKey']?.toString() ?? putResp['publicKey']?.toString();
           final relA = putResp['relationCodeA']?.toString() ?? relationCodeA;
           if (publicKeyA != null) {
@@ -77,7 +76,6 @@ class _TestRouteState extends State<ScannerRoute> {
 
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Matching envoyé au serveur')));
 
-          // Bob starts polling to wait for finalized status
           _startPollingForFinalize(relationCodeA);
           return;
         } else {
@@ -120,13 +118,13 @@ class _TestRouteState extends State<ScannerRoute> {
       elapsed += interval;
       if (elapsed > timeout) {
         timer.cancel();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Timeout attente finalization')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Timeout attente finalisation')));
         return;
       }
 
       final statusResp = await ApiService.getPairingStatus(relationCodeA);
       if (statusResp != null) {
-        final status = (statusResp['status']?.toString() ?? '').toLowerCase();
+        final status = statusResp['status']?.toString()?.toLowerCase();
         if (status == 'finalized') {
           timer.cancel();
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pairing finalisé')));
