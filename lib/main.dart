@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'screens/home_screen.dart';
+import 'screens/relation_screen.dart';
 import 'route/users/connexion_route.dart';
 import 'route/users/scan_route.dart';
 
@@ -27,6 +28,10 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/scanner',
           builder: (context, state) => const ScannerRoute(),
+        ),
+        GoRoute(
+          path: '/relation',
+          builder: (context, state) => const RelationScreen(),
         ),
       ],
     );

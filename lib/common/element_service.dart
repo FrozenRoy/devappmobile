@@ -24,6 +24,20 @@ class ElementService {
     }
   }
 
+  /// DELETE /element
+  static Future<bool> deleteElement(Map<String, dynamic> payload) async {
+    try {
+      final request = http.Request('DELETE', Uri.parse(_elementEndpoint));
+      request.headers['Content-Type'] = 'application/json';
+      request.body = json.encode(payload);
+
+      final resp = await http.Client().send(request);
+      return resp.statusCode >= 200 && resp.statusCode < 300;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// GET /element (global)
   static Future<Map<String, dynamic>?> getAllElements() async {
     try {
