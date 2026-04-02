@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:go_router/go_router.dart';
 import '../common/element_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
@@ -17,15 +18,19 @@ class _RelationScreenState extends State<RelationScreen> {
 
   Future<void> _sendMessage() async {
     final prefs = await SharedPreferences.getInstance();
+    final relationCodeA = prefs.getString('relationCodeA');
     final relationCodeB = prefs.getString('relationCodeB');
+    final isDeviceA = prefs.getBool('isDeviceA') ?? true;
 
-    if (relationCodeB != null) {
+    final targetCode = isDeviceA ? relationCodeB : relationCodeA;
+
+    if (targetCode != null) {
       final textMessage = _messageController.text.trim();
       if (textMessage.isEmpty) return;
 
       final creationDate = DateTime.now().toUtc().toIso8601String();
       final payload = {
-        'relationCode': relationCodeB,
+        'relationCode': targetCode,
         'creationDate': creationDate,
         'key': 'MESSAGE',
         'value': textMessage,
@@ -35,9 +40,10 @@ class _RelationScreenState extends State<RelationScreen> {
 
       if (mounted) {
         setState(() {
-          messages.insert(0, {
+          messages.add({
             'content': textMessage,
             'sentAt': creationDate,
+            'isMe': true,
           });
         });
       }
@@ -49,13 +55,22 @@ class _RelationScreenState extends State<RelationScreen> {
 
   Future<void> _LoadMessages() async {
       final prefs = await SharedPreferences.getInstance();
+      final relationCodeA = prefs.getString('relationCodeA');
       final relationCodeB = prefs.getString('relationCodeB');
+      final isDeviceA = prefs.getBool('isDeviceA') ?? true;
 
-      if (relationCodeB != null) {
-          final newMessages = await ElementService.getMessagesForRelation(relationCodeB);
-          if (mounted) {
+      final myCode = isDeviceA ? relationCodeA : relationCodeB;
+
+      if (myCode != null) {
+          final newMessages = await ElementService.getMessagesForRelation(myCode);
+          if (mounted && newMessages.isNotEmpty) {
+            final mappedMessages = newMessages.map((m) {
+              final newMap = Map<String, dynamic>.from(m);
+              newMap['isMe'] = false;
+              return newMap;
+            }).toList();
             setState(() {
-              messages = newMessages.reversed.toList();
+              messages.addAll(mappedMessages);
             });
           }
     }
@@ -64,7 +79,7 @@ class _RelationScreenState extends State<RelationScreen> {
   @override
   void initState() {
     super.initState();
-    const time = Duration( seconds: 5);
+    const time = Duration( seconds: 2);
     Timer.periodic(time, (Timer t) => _LoadMessages());
     _messageController = TextEditingController();
   }
@@ -81,6 +96,11 @@ class _RelationScreenState extends State<RelationScreen> {
       appBar: AppBar(
         title: const Text('Alto - Relation'),
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/'),
+          tooltip: 'Retour',
+        ),
       ),
       body: Column(
         children: [
@@ -89,21 +109,26 @@ class _RelationScreenState extends State<RelationScreen> {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final msg = messages[index];
+                final isMe = msg['isMe'] == true;
                 return Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
                     padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      color: isMe ? Colors.blue[100] : Colors.grey[300],
+                      borderRadius: BorderRadius.circular(16.0),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           msg['content']?.toString() ?? '',
+                          style: TextStyle(
+                            color: isMe ? Colors.black87 : Colors.black87,
+                          ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          msg['sentAt']?.toString() ?? '',
-                        ),
                       ],
                     ),
                   ),
