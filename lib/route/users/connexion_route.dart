@@ -85,6 +85,7 @@ class _ConnexionRouteState extends State<ConnexionRoute> {
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('remote_pubkey', pubB);
               if (relationCodeB != null) await prefs.setString('relationCodeB', relationCodeB);
+              await prefs.setBool('isDeviceA', true);
             }
           }
 

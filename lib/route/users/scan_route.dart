@@ -72,6 +72,7 @@ class _TestRouteState extends State<ScannerRoute> {
             await prefs.setString('remote_pubkey', publicKeyA);
             await prefs.setString('relationCodeA', relA);
             await prefs.setString('relationCodeB', relationCodeB);
+            await prefs.setBool('isDeviceA', false);
           }
 
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Matching envoyé au serveur')));
@@ -191,4 +192,3 @@ class _TestRouteState extends State<ScannerRoute> {
     );
   }
 }
-
