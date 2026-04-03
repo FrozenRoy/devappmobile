@@ -76,6 +76,22 @@ class _RelationScreenState extends State<RelationScreen> {
     }
   }
 
+  Color _bulleColor(String colorString) {
+    final color = colorString.toLowerCase().trim();
+
+    final colorMap = {
+      'rouge': Colors.red[100]!,
+      'vert': Colors.green[100]!,
+      'bleu': Colors.blue[100]!,
+      'jaune': Colors.yellow[100]!,
+      'orange': Colors.orange[100]!,
+      'rose': Colors.pink[100]!,
+      'violet': Colors.purple[100]!,
+    };
+
+    return colorMap[color] ?? Colors.blue[100]!;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -116,7 +132,7 @@ class _RelationScreenState extends State<RelationScreen> {
                     margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
                     padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
                     decoration: BoxDecoration(
-                      color: isMe ? Colors.blue[100] : Colors.grey[300],
+                      color: isMe ? _bulleColor(msg['content']?.toString() ?? '') : Colors.grey[300],
                       borderRadius: BorderRadius.circular(16.0),
                     ),
                     child: Column(
